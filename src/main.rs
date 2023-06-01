@@ -3,7 +3,7 @@
 
 use std::env;
 use std::process;
-use boosha256sum::Config;
+use boohashing::Config;
 use std::time::{Instant};
 
 fn main() {
@@ -15,14 +15,14 @@ fn main() {
     });
 
     let now = Instant::now();
-    match boosha256sum::run(&config){
+    match boohashing::run(&config){
         Ok(digest) => {
             let elapsed_time = now.elapsed().as_millis();
             println!("{:?} hash computed in {} milliseconds.", config.args_opts.get("-i").unwrap(), elapsed_time);
 
             match config.args_opts.get("-f") {
                 Some(output_file) => { 
-                    match boosha256sum::write_to_file(&output_file.as_str(), digest.as_str()){
+                    match boohashing::write_to_file(&output_file.as_str(), digest.as_str()){
                         Ok(_) => {
                             println!("Saved to file.");
                         }
