@@ -3,6 +3,9 @@ use std::error::Error;
 use sha2::{Sha256, Sha512, Digest};
 use std::io::{BufReader, Read, Write};
 use std::collections::HashMap;
+use std::time::{Instant};
+use std::process;
+
 
 #[derive(Debug)]
 pub struct Config {
@@ -60,69 +63,61 @@ impl Config {
     }
 }
 
-// fn generate_hash<T>(hasher: &T, file: &fs::File) -> Result<&T, Box<dyn Error>> {
-
-//     //let file = fs::File::open(file_name)?;
-//     let mut reader = BufReader::new(file);
-//     //let mut hasher = Sha512::new();
-//     let mut buffer = [0; 1024];
-
-//     loop {
-//         let count = reader.read(&mut buffer)?;
-//         if count == 0 {
-//             break;
-//         }
-//         hasher.update(&buffer[..count]);
-//     }
-//     Ok(hasher)
-
-// }
-
-
 pub fn write_to_file(file_name: &str, content: &str) -> Result<(), Box<dyn Error>> {
     let mut file = fs::File::create(file_name)?;
     file.write_all(content.as_bytes())?;
     Ok(())
 }
 
-pub fn run(config: &Config) -> Result<String, Box<dyn Error>> {
-
+fn compute_hash<T: Digest + Clone>(config: &Config, input_hasher: T) -> Result<(), Box<dyn Error>> {
+    let mut hasher = input_hasher.clone();
     let file_name = config.args_opts.get("-i").unwrap();
     let file = fs::File::open(file_name)?;
     let mut reader = BufReader::new(file);
     let mut buffer = [0; 1024];
 
+    let now = Instant::now();
+    loop {
+        let count = reader.read(&mut buffer)?;
+        if count == 0 {
+            break;
+        }
+        hasher.update(&buffer[..count]);
+    }
+    let result = hasher.finalize();
+    println!("{:?} hash computed in {} milliseconds.", config.args_opts.get("-i").unwrap(), now.elapsed().as_millis());
+    Ok(())
+}
+
+pub fn run(config: &Config) -> Result<(), Box<dyn Error>> {
     match config.command {
         "sha512" =>
         {
-            let mut hasher = Sha512::new();
-            loop {
-                let count = reader.read(&mut buffer)?;
-                if count == 0 {
-                    break;
+            let hasher = Sha512::new();
+            match compute_hash(&config, hasher){
+                Ok(()) => {}
+                Err(e) => {
+                    eprintln!("Error computing hash: {e}");
+                    process::exit(1);
                 }
-                hasher.update(&buffer[..count]);
             }
 
-            let result = hasher.finalize();
-            Ok(format!("{:x}", result))
         }
         "sha256" | _ => 
         {
-            let mut hasher = Sha256::new();
-            loop {
-                let count = reader.read(&mut buffer)?;
-                if count == 0 {
-                    break;
+            let hasher = Sha256::new();
+            match compute_hash(&config, hasher){
+                Ok(()) => {}
+                Err(e) => {
+                    eprintln!("Error computing hash: {e}");
+                    process::exit(1);
                 }
-                hasher.update(&buffer[..count]);
             }
-
-            let result = hasher.finalize();
-            Ok(format!("{:x}", result))
-        }
-        
+        }      
     }
+
+    Ok(())
+
 }
 
 #[cfg(test)]
