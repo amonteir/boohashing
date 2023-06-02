@@ -69,9 +69,9 @@ pub fn write_to_file(file_name: &str, content: &str) -> Result<(), Box<dyn Error
     Ok(())
 }
 
-fn compute_hash<T: Digest + Clone>(config: &Config, input_hasher: T) -> Result<(), Box<dyn Error>> {
+fn compute_hash<T: Digest + Clone>(config: &Config, input_hasher: T) -> Result<String, Box<dyn Error>> {
     let mut hasher = input_hasher.clone();
-    let file_name = config.args_opts.get("-i").unwrap();
+    let file_name = config.args_opts.get("-i").ok_or("missing '-i' option")?;
     let file = fs::File::open(file_name)?;
     let mut reader = BufReader::new(file);
     let mut buffer = [0; 1024];
@@ -84,18 +84,24 @@ fn compute_hash<T: Digest + Clone>(config: &Config, input_hasher: T) -> Result<(
         }
         hasher.update(&buffer[..count]);
     }
-    let result = hasher.finalize();
+    let result: digest::generic_array::GenericArray<u8, <T as Digest>::OutputSize> = hasher.finalize();
     println!("{:?} hash computed in {} milliseconds.", config.args_opts.get("-i").unwrap(), now.elapsed().as_millis());
-    Ok(())
+    let result_hex = result.iter().map(|byte| format!("{:02x}", byte)).collect::<String>();
+    Ok(result_hex)
 }
 
-pub fn run(config: &Config) -> Result<(), Box<dyn Error>> {
+
+pub fn run(config: &Config) -> Result<String, Box<dyn Error>> {
+    let mut digest: String = String::new();
     match config.command {
         "sha512" =>
         {
             let hasher = Sha512::new();
             match compute_hash(&config, hasher){
-                Ok(()) => {}
+                Ok(hash) => {
+                    digest = hash;
+
+                }
                 Err(e) => {
                     eprintln!("Error computing hash: {e}");
                     process::exit(1);
@@ -107,7 +113,9 @@ pub fn run(config: &Config) -> Result<(), Box<dyn Error>> {
         {
             let hasher = Sha256::new();
             match compute_hash(&config, hasher){
-                Ok(()) => {}
+                Ok(hash) => {
+                    digest = hash;
+                }
                 Err(e) => {
                     eprintln!("Error computing hash: {e}");
                     process::exit(1);
@@ -116,7 +124,7 @@ pub fn run(config: &Config) -> Result<(), Box<dyn Error>> {
         }      
     }
 
-    Ok(())
+    Ok(digest)
 
 }
 

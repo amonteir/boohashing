@@ -15,7 +15,7 @@ fn main() {
 
  
     match boohashing::run(&config){
-        Ok(()) => {
+        Ok(_) => {
             //println!("{:?} hash computed in {} milliseconds.", config.args_opts.get("-i").unwrap(), elapsed_time);
         },
         Err(e) => {
