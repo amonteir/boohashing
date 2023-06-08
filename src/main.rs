@@ -13,14 +13,9 @@ fn main() {
         process::exit(0);
     });
 
- 
-    match boohashing::run(&config){
-        Ok(_) => {
-            //println!("{:?} hash computed in {} milliseconds.", config.args_opts.get("-i").unwrap(), elapsed_time);
-        },
-        Err(e) => {
-            eprintln!("Error returned: {e}");
+    if let Err(e) = boohashing::run(&config){
+            eprintln!("{e}");
             process::exit(1);
-        }
     }
+    
 }
