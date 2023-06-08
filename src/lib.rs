@@ -69,8 +69,12 @@ impl Config {
 }
 
 fn write_to_file(file_name: &str, content: &str) -> Result<(), Box<dyn Error>> {
-
-    let mut file = fs::File::create(file_name)?;
+    let output_folder: &str = "outputs";
+    fs::create_dir_all(output_folder)?;
+    let mut file = fs::File::create(
+        &format!("{}/{}", 
+        output_folder, 
+        file_name))?;
     file.write_all(content.as_bytes())?;
     Ok(())
 }
@@ -156,7 +160,7 @@ mod tests {
     #[test]
     fn config_build() {
         let mut config_args_opts_map: HashMap<String, String> = HashMap::new();
-        config_args_opts_map.insert(String::from("-i"), String::from("sample1.txt"));
+        config_args_opts_map.insert(String::from("-i"), String::from(&format!("tests/inputs/{}","sample1.txt")));
         let test_config: Config = Config{
             program: "boohashing",
             command: "sha256",
@@ -166,7 +170,7 @@ mod tests {
         let test_args: Vec<String> = vec![  String::from("program_name"), 
                                             String::from("sha256"), 
                                             String::from("-i"), 
-                                            String::from("sample1.txt")];
+                                            String::from(&format!("tests/inputs/{}","sample1.txt"))];
 
         assert_eq!( test_config.args_opts_map.get("-i"), 
                     Config::build(&test_args).unwrap().args_opts_map.get("-i")
@@ -175,7 +179,7 @@ mod tests {
     #[test]
     fn sha256_run(){
         let mut config_args_opts_map: HashMap<String, String> = HashMap::new();
-        config_args_opts_map.insert(String::from("-i"), String::from("sample1.txt"));
+        config_args_opts_map.insert(String::from("-i"), String::from(&format!("tests/inputs/{}","sample1.txt")));
         let test_config1: Config = Config{
             program: "boohashing",
             command: "sha256",
@@ -187,7 +191,7 @@ mod tests {
             compute_hash_and_process_output(&test_config1, hasher).unwrap());
 
         let mut config_args_opts_map2: HashMap<String, String> = HashMap::new();
-        config_args_opts_map2.insert(String::from("-i"), String::from("sample2.pdf"));
+        config_args_opts_map2.insert(String::from("-i"), String::from(&format!("tests/inputs/{}","sample2.pdf")));
         let test_config2: Config = Config{
             program: "boohashing",
             command: "sha256",
