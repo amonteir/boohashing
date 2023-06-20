@@ -16,6 +16,14 @@ The bones and skeleton of our command line arguments are as follows:
 - `-i <file_name>`: This is where you offer your sacrifice (input file) to the hashing spirits.🕯️📁
 - `-f <file_name>`: The spirits, if properly invoked, will save the hash digest in the specified file in the `outputs/` crypt. If the spirits see no `-f` in their summoning circle, they will deliver the message directly to you in the console.🪦📜
 
+## Examples
+
+Worried about summoning the wrong spirit? Fear not! Here's a safe example for you to follow. To use BooHashing, simply run:
+
+```bash
+boohashing sha256 -i sample1.txt -f out1.txt
+```
+
 ## Future Plans
 
 Currently, we only allow a single file as input, but in the future, we plan to conjure up support for multiple files. We also have plans to expand our library of hashing algorithms. Our team of developer wizards are tirelessly working in their coding dungeons to make this a reality.🧙‍♂️👩‍💻🧙‍♀️
