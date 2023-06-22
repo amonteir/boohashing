@@ -1,3 +1,12 @@
+//! # BooHashing
+//! 
+//! 'boohashing' is a library that allows a user to compute the hash value of any given file
+//! and then compare it against the original hash. 
+//! 
+//! This is useful because, as a user, when you download a file from the internet you want to
+//! understand if the file has been changed by another person which could result in a cyber 
+//! threat vector to your system. 
+
 use std::fs;
 use std::error::Error;
 use sha2::{Sha256, Sha512, Digest};
@@ -68,6 +77,7 @@ impl Config {
     }
 }
 
+/// Writes the computed hash value into a given output file
 fn write_to_file(file_name: &str, content: &str) -> Result<(), Box<dyn Error>> {
     let output_folder: &str = "outputs";
     fs::create_dir_all(output_folder)?;
@@ -79,6 +89,8 @@ fn write_to_file(file_name: &str, content: &str) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+/// Computes the hash value of a given file. 
+/// Different hash algorithms supported.
 fn compute_hash<T: Digest + Clone>(config: &Config, input_hasher: T) -> Result<String, Box<dyn Error>> {
 
     let mut hasher = input_hasher.clone();
@@ -101,6 +113,8 @@ fn compute_hash<T: Digest + Clone>(config: &Config, input_hasher: T) -> Result<S
     Ok(result_hex)
 }
 
+/// This private function processes the outputs by either calling
+/// 'write_to_file' function or printing to the console.
 fn process_outputs(config: &Config, digest: &String) -> Result<(), Box<dyn Error>>{
 
     match config.args_opts_map.get("-f") {
@@ -119,6 +133,8 @@ fn process_outputs(config: &Config, digest: &String) -> Result<(), Box<dyn Error
     Ok(())
 }
 
+/// This private function computes the hash value of a file and then processes 
+/// the output.
 fn compute_hash_and_process_output<T: Digest + Clone>(config: &Config, hasher: T) -> Result<String, Box<dyn Error>>  {
     
     let hash = compute_hash(config, hasher)?;
@@ -126,6 +142,8 @@ fn compute_hash_and_process_output<T: Digest + Clone>(config: &Config, hasher: T
     Ok(hash)
 }
 
+/// Public function that is the entry point for the library.
+/// It calls the private 'compute_hash_and_process_output' function.
 pub fn run(config: &Config) -> Result<(), Box<dyn Error>> {
 
     match config.command {
